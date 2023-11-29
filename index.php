@@ -50,6 +50,7 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>지역 커뮤니티</title>
     <style>
+    <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -189,25 +190,23 @@ $result = $conn->query($sql);
         <?php endif; ?>
 
         <?php
-        // $result가 null이 아닌 경우에만 처리
         if ($result !== null && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
+                // 게시물 상세 페이지로 이동하는 링크 추가
                 echo "<div class='post'>";
-                echo "<h3>{$row['Title']}</h3>";
+                echo "<h3><a href='post_detail.php?post_id={$row['PostID']}'>{$row['Title']}</a></h3>";
                 echo "<p>{$row['Content']}</p>";
                 echo "<small>작성자: {$row['Username']}, 작성일: {$row['CreatedAt']}</small>";
-
+        
                 // 게시글 수정 및 삭제
                 if ($user_id && $user_id === $row['UserID']) {
                     echo "<div class='edit-delete'>";
-                    // 게시물 수정 기능 추가
                     echo "<a href='edit_post.php?post_id={$row['PostID']}'>수정</a>";
                     echo " | ";
-                    // 게시물 삭제 기능 추가
                     echo "<a href='delete_post.php?post_id={$row['PostID']}'>삭제</a>";
                     echo "</div>";
                 }
-
+        
                 echo "</div>";
             }
         } else {
