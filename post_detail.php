@@ -231,12 +231,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
 
             <?php while ($comment_row = $comment_result->fetch_assoc()): ?>
-            <div class='comment' id="comment-<?php echo $comment_row['CommentID']; ?>">
-                <p><?php echo $comment_row['Content']; ?></p>
-                <small>작성자: <?php echo $comment_row['Username']; ?>, 작성일: <?php echo $comment_row['CreatedAt']; ?></small>
-
-                <!-- 추가: 추천 수 표시 -->
-                <small>추천 수: <?php echo $comment_row['Likes']; ?></small>
+                <div class='comment' id="comment-<?php echo $comment_row['CommentID']; ?>">
+                    <p><?php echo $comment_row['Content']; ?></p>
+                    <small>작성자: <?php echo $comment_row['Username']; ?>, 작성일: <?php echo $comment_row['CreatedAt']; ?>
+                ,추천 수: <?php echo $comment_row['Likes']; ?></small>
+                    
                     
                     <!-- 대댓글 작성 폼 -->
                     <form method="post" style="margin-top: 10px;">
@@ -247,8 +246,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="submit" value="댓글 작성">
                     </form>
                     
-                    <!-- 추천 버튼 -->
-                    <button class="like-comment-btn" data-comment-id="<?php echo $comment_row['CommentID']; ?>">추천</button>
+                    <!-- 추가: 추천 버튼 -->
+                    <button class="like-comment-btn" data-comment-id="<?php echo $comment_row['CommentID']; ?>">
+                    <?php
+                    // 사용자가 이미 댓글에 추천을 눌렀는지 확인
+                    $check_like_stmt = $conn->prepare("SELECT * FROM Likes WHERE CommentID = ? AND UserID = ?");
+                    $check_like_stmt->bind_param("ii", $comment_row['CommentID'], $user_id);
+                    $check_like_stmt->execute();
+                    $check_like_result = $check_like_stmt->get_result();
+
+                    if ($check_like_result->num_rows > 0) {
+                        echo '추천 취소';
+                    } else {
+                        echo '추천';
+                    }
+                    ?>
+                </button>
                 </div>
             <?php endwhile; ?>
         <?php else: ?>
@@ -256,30 +269,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
     </div>
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var likeButtons = document.querySelectorAll('.like-comment-btn');
-        
-        likeButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                var commentId = this.getAttribute('data-comment-id');
-                likeComment(commentId);
+           document.addEventListener('DOMContentLoaded', function () {
+            var likeButtons = document.querySelectorAll('.like-comment-btn');
+
+            likeButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var commentId = this.getAttribute('data-comment-id');
+                    likeComment(commentId, this);
+                });
             });
+
+            function likeComment(commentId, button) {
+                // AJAX to update likes
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'update_likes.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        // Handle the response
+                        if (xhr.responseText === 'liked') {
+                            // User liked the comment
+                            alert('추천되었습니다.');
+                            // Change button text to "추천 취소"
+                            button.textContent = '추천 취소';
+                        } else if (xhr.responseText === 'unliked') {
+                            // User unliked the comment
+                            alert('추천이 취소되었습니다.');
+                            // Change button text to "추천"
+                            button.textContent = '추천';
+                        }
+
+                        // 페이지 리로드
+                        location.reload();
+                    }
+                };
+                xhr.send('like_comment_id=' + commentId);
+            }
         });
-        
-        function likeComment(commentId) {
-            // AJAX를 사용하여 commentId를 PHP로 전송하고, PHP에서 추천 수를 증가시키는 작업을 수행
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', 'your_like_comment_endpoint.php', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    // 페이지 리로드 없이 화면 갱신
-                    location.reload();
-                }
-            };
-            xhr.send('like_comment_id=' + commentId);
-        }
-    });
+
+
     </script>
 </body>
 </html>
