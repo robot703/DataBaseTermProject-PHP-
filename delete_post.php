@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$conn = new mysqli("localhost", "root", "", "CommunityPlatform");
+$conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
