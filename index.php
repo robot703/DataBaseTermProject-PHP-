@@ -1,55 +1,9 @@
-<?php
-session_start();
-
-$conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// 로그인 확인
-if (isset($_SESSION['user_id'])) {
-    $user_id = $_SESSION['user_id'];
-    // 사용자 이름으로 바꾸기
-    $user_stmt = $conn->prepare("SELECT Username FROM Users WHERE UserID = ?");
-    $user_stmt->bind_param("i", $user_id);
-    $user_stmt->execute();
-    $user_result = $user_stmt->get_result();
-    if ($user_result->num_rows > 0) {
-        $user_row = $user_result->fetch_assoc();
-        $username = $user_row['Username'];
-    }
-    $user_stmt->close();
-} else {
-    $user_id = null;
-    $username = null;
-}
-
-// 게시글 작성
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = $_POST['title'];
-    $content = $_POST['content'];
-
-    if ($user_id) {
-        $stmt = $conn->prepare("INSERT INTO Posts (UserID, Title, Content) VALUES (?, ?, ?)");
-        $stmt->bind_param("iss", $user_id, $title, $content);
-        $stmt->execute();
-        $stmt->close();
-    }
-}
-
-$sql = "SELECT Posts.*, Users.Username FROM Posts
-        LEFT JOIN Users ON Posts.UserID = Users.UserID
-        ORDER BY CreatedAt DESC";
-$result = $conn->query($sql);
-
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>지역 커뮤니티</title>
-    <style>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -72,161 +26,93 @@ $result = $conn->query($sql);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
-        form {
-            margin-top: 20px;
+        .menu-bar {
+            position: fixed;
+            top: 0;
+            left: -250px; /* Initially hidden off-screen */
+            width: 250px;
+            height: 100%;
+            background-color: #333;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            transition: left 0.3s ease;
         }
 
-        label {
+        .menu-bar a {
             display: block;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"],
-        textarea {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        input[type="submit"] {
-            background-color: #4caf50;
-            color: #fff;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        .post {
-            margin-top: 20px;
-            border: 1px solid #ccc;
             padding: 15px;
-            border-radius: 8px;
-            background-color: #fff;
-        }
-
-        .post h3 {
-            color: #333;
-        }
-
-        .post p {
-            color: #666;
-        }
-
-        .post small {
-            color: #999;
-        }
-
-        .user-info {
-            margin-bottom: 10px;
-        }
-
-        .user-info a {
-            margin-right: 10px;
-            color: #333;
-            text-decoration: none;
-        }
-
-        .logout-btn {
-            background-color: #e74c3c;
             color: #fff;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
+            text-decoration: none;
+            border-bottom: 1px solid #555;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-bar a:hover {
+            background-color: #555;
+        }
+
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
             cursor: pointer;
-            text-decoration: none;
+            z-index: 2;
         }
 
-        .logout-btn:hover {
-            background-color: #c0392b;
+        .menu-toggle span {
+            display: block;
+            height: 2px;
+            width: 25px;
+            background-color: #333;
+            margin-bottom: 6px;
+            transition: 0.3s;
         }
 
-        .edit-delete {
-            margin-top: 10px;
+        .menu-toggle span:nth-child(2) {
+            width: 18px;
         }
 
-        .edit-delete a {
-            margin-right: 10px;
-            color: #3498db;
-            text-decoration: none;
+        .menu-toggle.open span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
         }
 
-        .edit-delete a:hover {
-            text-decoration: underline;
+        .menu-toggle.open span:nth-child(2) {
+            opacity: 0;
         }
-        </style>
+
+        .menu-toggle.open span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-        <h1>지역 커뮤니티</h1>
-        <p>여기에 지역 이벤트, 서비스, 토론 등을 공유하세요!</p>
+    <div class="menu-bar" id="menuBar">
+        <a href="create_post.php">게시물 작성</a>
+        <a href="logout.php">로그아웃</a>
+    </div>
+    
+    <div class="container">
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
 
-        <?php if ($user_id): ?>
-            <!-- 사용자가 로그인한 경우 -->
-            <div class="user-info">
-                <p>안녕하세요, <?php echo $username; ?>님! <a class="logout-btn" href="logout.php">로그아웃</a></p>
-            </div>
-            <form method="post">
-                <label for="title">제목:</label>
-                <input type="text" name="title" required>
-                <br>
-                <label for="content">내용:</label>
-                <textarea name="content" required></textarea>
-                <br>
-                <input type="submit" value="게시글 작성">
-            </form>
-        <?php else: ?>
-            <!-- 사용자가 로그인하지 않은 경우 -->
-            <p><a href="login.php">로그인</a> | <a href="register.php">회원가입</a></p>
-        <?php endif; ?>
+        <h1>Stack overflow</h1>
+        <p>Empowering the world to develop technology through collective knowledge.</p>
 
-        <?php
-        if ($result !== null && $result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                // 게시물 상세 페이지로 이동하는 링크 추가
-                echo "<div class='post'>";
-                echo "<h3><a href='post_detail.php?post_id={$row['PostID']}'>{$row['Title']}</a></h3>";
-                echo "<p>{$row['Content']}</p>";
-                echo "<small>작성자: {$row['Username']}, 작성일: {$row['CreatedAt']}</small>";
-        
-                // 게시글 수정 및 삭제
-                if ($user_id && $user_id === $row['UserID']) {
-                    echo "<div class='edit-delete'>";
-                    echo "<a href='edit_post.php?post_id={$row['PostID']}'>수정</a>";
-                    echo " | ";
-                    echo "<a href='delete_post.php?post_id={$row['PostID']}'>삭제</a>";
-                    echo "</div>";
-                }
-        
-                echo "</div>";
-            }
-        } else {
-            echo "<p>게시글이 없습니다.</p>";
-        }
-        ?>
-        
-        <!-- 추가: 게시글 작성 폼 아래에 게시글 목록을 출력하는 부분에 수정 및 삭제 기능 추가 -->
+        <!-- Rest of your content -->
+
+        <!-- Additional scripts for menu toggle -->
         <script>
-        // 삭제 확인 후 삭제 수행
-        function deletePost(postId) {
-            if (confirm("게시글을 삭제하시겠습니까?")) {
-                window.location.href = "delete_post.php?post_id=" + postId;
+            function toggleMenu() {
+                var menuBar = document.getElementById("menuBar");
+                menuBar.style.left = menuBar.style.left === "0px" ? "-250px" : "0px";
+                document.querySelector('.menu-toggle').classList.toggle('open');
             }
-        }
-        
-        // 수정 페이지로 이동
-        function editPost(postId) {
-            window.location.href = "edit_post.php?post_id=" + postId;
-        }
         </script>
     </div>
 </body>

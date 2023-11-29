@@ -6,13 +6,16 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+$login_error = ""; // Variable to store login error message
+
 // 로그인 처리
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
+    $user_id = $_POST['user_id']; // Update variable name
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM Users WHERE Username = ? AND Password = ?");
-    $stmt->bind_param("ss", $username, $password);
+    // Use prepared statement to prevent SQL injection
+    $stmt = $conn->prepare("SELECT * FROM Users WHERE UserID = ? AND Password = ?");
+    $stmt->bind_param("ss", $user_id, $password);
     $stmt->execute();
     $result = $stmt->get_result();
     $stmt->close();
@@ -22,6 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'] = $user['UserID'];
         header("Location: index.php");
         exit();
+    } else {
+        $login_error = "로그인에 실패했습니다. 다시 확인해주세요.";
     }
 }
 
@@ -82,16 +87,28 @@ $conn->close();
         input[type="submit"]:hover {
             background-color: #2980b9;
         }
+
+        .error-message {
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <h2>Login</h2>
+    
+    <!-- Display login error message if there is one -->
+    <?php if (!empty($login_error)): ?>
+        <p class="error-message"><?php echo $login_error; ?></p>
+    <?php endif; ?>
+
     <form method="post">
-        <label for="username">ID:</label>
-        <input type="text" name="username" required>
+        <label for="user_id">ID:</label> <!-- Update input name -->
+        <input type="text" name="user_id" required> <!-- Update input name -->
         <label for="password">Password:</label>
         <input type="password" name="password" required>
         <input type="submit" value="로그인">
+        <a class="login-link" href="register.php">SignUp</a>
     </form>
 </body>
 </html>
