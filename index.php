@@ -166,7 +166,7 @@ $result = $conn->query($sql);
         </style>
 </head>
 <body>
-    <div class="container">
+<div class="container">
         <h1>지역 커뮤니티</h1>
         <p>여기에 지역 이벤트, 서비스, 토론 등을 공유하세요!</p>
 
@@ -213,6 +213,21 @@ $result = $conn->query($sql);
             echo "<p>게시글이 없습니다.</p>";
         }
         ?>
+        
+        <!-- 추가: 게시글 작성 폼 아래에 게시글 목록을 출력하는 부분에 수정 및 삭제 기능 추가 -->
+        <script>
+        // 삭제 확인 후 삭제 수행
+        function deletePost(postId) {
+            if (confirm("게시글을 삭제하시겠습니까?")) {
+                window.location.href = "delete_post.php?post_id=" + postId;
+            }
+        }
+        
+        // 수정 페이지로 이동
+        function editPost(postId) {
+            window.location.href = "edit_post.php?post_id=" + postId;
+        }
+        </script>
     </div>
 </body>
 </html>

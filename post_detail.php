@@ -268,46 +268,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p>댓글이 없습니다.</p>
         <?php endif; ?>
     </div>
-    <script>
-           document.addEventListener('DOMContentLoaded', function () {
-            var likeButtons = document.querySelectorAll('.like-comment-btn');
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        var likeButtons = document.querySelectorAll('.like-comment-btn');
 
-            likeButtons.forEach(function (button) {
-                button.addEventListener('click', function () {
-                    var commentId = this.getAttribute('data-comment-id');
-                    likeComment(commentId, this);
-                });
+        likeButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var commentId = this.getAttribute('data-comment-id');
+                likeComment(commentId, this);
             });
-
-            function likeComment(commentId, button) {
-                // AJAX to update likes
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', 'update_likes.php', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        // Handle the response
-                        if (xhr.responseText === 'liked') {
-                            // User liked the comment
-                            alert('추천되었습니다.');
-                            // Change button text to "추천 취소"
-                            button.textContent = '추천 취소';
-                        } else if (xhr.responseText === 'unliked') {
-                            // User unliked the comment
-                            alert('추천이 취소되었습니다.');
-                            // Change button text to "추천"
-                            button.textContent = '추천';
-                        }
-
-                        // 페이지 리로드
-                        location.reload();
-                    }
-                };
-                xhr.send('like_comment_id=' + commentId);
-            }
         });
 
+    function likeComment(commentId, button) {
+        // AJAX를 사용하여 추천을 업데이트
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'update_likes.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                // 응답을 처리
+                if (xhr.responseText === 'liked') {
+                    // 사용자가 댓글에 추천을 누른 경우
+                    alert('추천되었습니다.');
+                    // 버튼 텍스트를 "추천 취소"로 변경
+                    button.textContent = '추천 취소';
+                } else if (xhr.responseText === 'unliked') {
+                    // 사용자가 댓글의 추천을 취소한 경우
+                    alert('추천이 취소되었습니다.');
+                    // 버튼 텍스트를 "추천"으로 변경
+                    button.textContent = '추천';
+                }
 
-    </script>
+                // 페이지 리로드
+                location.reload();
+            }
+        };
+        xhr.send('like_comment_id=' + commentId);
+    }
+});
+</script>
 </body>
 </html>
