@@ -48,6 +48,7 @@
             text-decoration: none;
             border-bottom: 1px solid #555;
             transition: background-color 0.3s ease;
+            cursor: pointer; /* Add cursor style to indicate clickable */
         }
 
         .menu-bar a:hover {
@@ -90,8 +91,9 @@
 </head>
 <body>
     <div class="menu-bar" id="menuBar">
+        <br>
         <a href="create_post.php">게시물 작성</a>
-        <a href="logout.php">로그아웃</a>
+        <a onclick="logout()">Logout</a>
     </div>
     
     <div class="container">
@@ -106,12 +108,17 @@
 
         <!-- Rest of your content -->
 
-        <!-- Additional scripts for menu toggle -->
+        <!-- Additional scripts for menu toggle and logout function -->
         <script>
             function toggleMenu() {
                 var menuBar = document.getElementById("menuBar");
                 menuBar.style.left = menuBar.style.left === "0px" ? "-250px" : "0px";
                 document.querySelector('.menu-toggle').classList.toggle('open');
+            }
+
+            function logout() {
+                // You can redirect to the logout page or perform other logout actions here
+                alert('Logout clicked!'); // Placeholder, replace with actual logout logic
             }
         </script>
     </div>
