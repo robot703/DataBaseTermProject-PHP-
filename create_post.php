@@ -1,35 +1,39 @@
 <?php
 session_start();
 
-$conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// 로그인 확인
+// 사용자가 로그인한 상태인지 확인
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php"); // Redirect to login page if not logged in
+    // 로그인되어 있지 않다면 로그인 페이지로 리다이렉트
+    header("Location: login.php");
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // 폼 데이터 처리
+    $title = $_POST["title"];
+    $content = $_POST["content"];
+    $userID = $_SESSION["user_id"];
 
-// 게시글 작성
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = $_POST['title'];
-    $content = $_POST['content'];
+    $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
+    if ($conn->connect_error) {
+        die("연결 실패: " . $conn->connect_error);
+    }
 
+    // SQL 인젝션을 방지하기 위해 준비된 문 사용
     $stmt = $conn->prepare("INSERT INTO Posts (UserID, Title, Content) VALUES (?, ?, ?)");
-    $stmt->bind_param("iss", $user_id, $title, $content);
-    $stmt->execute();
+    $stmt->bind_param("sss", $userID, $title, $content);
+
+    if ($stmt->execute()) {
+        // 게시물이 성공적으로 작성되었을 때 JavaScript로 팝업 창 띄우고 index.php로 이동
+        echo "<script>alert('게시물이 성공적으로 작성되었습니다!'); window.location.href = 'index.php';</script>";
+    } else {
+        // 게시물 작성 중 오류가 발생했을 때 JavaScript로 팝업 창 띄우기
+        echo "<script>alert('게시물 작성 중 오류가 발생했습니다: " . $stmt->error . "');</script>";
+    }
+
     $stmt->close();
-
-    // Redirect to the main page after creating the post
-    header("Location: index.php");
-    exit();
+    $conn->close();
 }
-
-$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -76,6 +80,7 @@ $conn->close();
 
         textarea {
             width: 100%;
+            height: 300px;
             padding: 10px;
             margin-bottom: 20px;
             box-sizing: border-box;
@@ -98,13 +103,18 @@ $conn->close();
     </style>
 </head>
 <body>
-    <h2>Create Post</h2>
-    <form method="post">
-        <label for="title">Title:</label>
+    <!-- 게시물 생성을 위한 양식 추가 -->
+    <div class="container">
+        <!-- 기존의 HTML 코드 -->
+
+        <form action="create_post.php" method="POST">
+        <label for="title">제목:</label>
         <input type="text" name="title" required>
-        <label for="content">Content:</label>
-        <textarea name="content" required></textarea>
-        <input type="submit" value="Create Post">
+
+        <label for="content">내용:</label>
+        <textarea name="content" rows="4" required></textarea>
+
+        <input type="submit" value="게시물 작성">
     </form>
 </body>
 </html>

@@ -1,9 +1,25 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$menuLabel = 'Logout';
+$menuLink = 'logout.php';
+if (!isset($_SESSION['user_id'])) {
+    $menuLabel = 'Login';
+    $menuLink = 'login.php';
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지역 커뮤니티</title>
+    <title>Stackoverflow</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -32,7 +48,8 @@
         .menu-bar {
             position: fixed;
             top: 0;
-            left: -250px; /* Initially hidden off-screen */
+            left: -250px;
+            /* Initially hidden off-screen */
             width: 250px;
             height: 100%;
             background-color: #333;
@@ -48,7 +65,8 @@
             text-decoration: none;
             border-bottom: 1px solid #555;
             transition: background-color 0.3s ease;
-            cursor: pointer; /* Add cursor style to indicate clickable */
+            cursor: pointer;
+            /* Add cursor style to indicate clickable */
         }
 
         .menu-bar a:hover {
@@ -87,15 +105,22 @@
         .menu-toggle.open span:nth-child(3) {
             transform: rotate(45deg) translate(-5px, -6px);
         }
+
+        .post {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 20px;
+        }
     </style>
 </head>
+
 <body>
     <div class="menu-bar" id="menuBar">
         <br>
         <a href="create_post.php">게시물 작성</a>
-        <a onclick="logout()">Logout</a>
+        <a href="<?php echo $menuLink; ?>"><?php echo $menuLabel; ?></a>
     </div>
-    
+
     <div class="container">
         <div class="menu-toggle" onclick="toggleMenu()">
             <span></span>
@@ -106,7 +131,27 @@
         <h1>Stack overflow</h1>
         <p>Empowering the world to develop technology through collective knowledge.</p>
 
-        <!-- Rest of your content -->
+        <?php
+        $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
+        if ($conn->connect_error) {
+            die("연결 실패: " . $conn->connect_error);
+        }
+
+        $sql = "SELECT * FROM Posts";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                echo "<div class='post'>";
+                echo "<h3><a href='post_detail.php?id={$row['PostID']}'>{$row['Title']}</a></h3>";
+                echo "</div>";
+            }
+        } else {
+            echo "게시물이 없습니다.";
+        }
+
+        $conn->close();
+        ?>
 
         <!-- Additional scripts for menu toggle and logout function -->
         <script>
@@ -119,8 +164,10 @@
             function logout() {
                 // You can redirect to the logout page or perform other logout actions here
                 alert('Logout clicked!'); // Placeholder, replace with actual logout logic
+                window.location.href = 'login.php';
             }
         </script>
     </div>
 </body>
+
 </html>
