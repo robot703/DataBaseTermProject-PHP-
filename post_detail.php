@@ -1,42 +1,52 @@
 <?php
 session_start();
 
-if (isset($_POST['comment_id']) && isset($_SESSION['user_id'])) {
-    $commentID = $_POST['comment_id'];
-    $userID = $_SESSION['user_id'];
-
+function connectDB()
+{
     $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
+    return $conn;
+}
 
-    $insertQuery = "INSERT INTO likes (CommentID, UserID) VALUES ('$commentID', '$userID')";
-    $result = $conn->query($insertQuery);
+if (isset($_GET['id'])) {
+    $postID = $_GET['id'];
+    $conn = connectDB();
 
-    if ($result) {
-        echo "success";
+    $sql = "SELECT * FROM Posts WHERE PostID = $postID";
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        $post = $result->fetch_assoc();
     } else {
-        echo "error";
+        echo "Post not found.";
+        exit();
     }
+
+    $sqlComments = "SELECT * FROM Comments WHERE PostID = $postID";
+    $resultComments = $conn->query($sqlComments);
 
     $conn->close();
 } else {
-    echo "error";
+    echo "Invalid post ID.";
+    exit();
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Detail - Stackoverflow</title>
+    <title><?php echo $post['Title']; ?> - CommunityPlatform</title>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
-        body {
+       body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 0;
             background-color: #f4f4f4;
         }
 
@@ -74,16 +84,27 @@ if (isset($_POST['comment_id']) && isset($_SESSION['user_id'])) {
             border-bottom: 1px solid #ccc;
             padding: 10px;
             margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .comment-content {
             color: #333;
             margin: 0;
+            flex-grow: 1;
         }
 
         .comment-meta {
             color: #666;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .comment-meta p {
+            margin: 0;
+            margin-right: 10px;
         }
 
         .comment-form {
@@ -104,32 +125,12 @@ if (isset($_POST['comment_id']) && isset($_SESSION['user_id'])) {
             padding: 10px 20px;
             text-align: center;
             text-decoration: none;
-            display: inline-block;
             font-size: 16px;
             cursor: pointer;
             border-radius: 5px;
         }
 
         .comment-form input[type="submit"]:hover {
-            background-color: #2c64b7;
-        }
-
-        .like-button {
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
-            display: inline-block;
-        }
-
-        .like-button:hover {
             background-color: #2c64b7;
         }
 
@@ -191,111 +192,124 @@ if (isset($_POST['comment_id']) && isset($_SESSION['user_id'])) {
         .menu-toggle.open span:nth-child(3) {
             transform: rotate(45deg) translate(-5px, -6px);
         }
+        .like-button {
+            background-color: rgb(0,0,0);
+            color: white;
+            border: none;
+            padding: 7px 14px; /* 내부 여백 조절 */
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px; /* 글꼴 크기 조절 */
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .like-button:hover {
+            background-color: #2c64b7;
+        }
     </style>
 </head>
-
 <body>
-    <?php
-    session_start();
 
-    if (isset($_GET['id'])) {
-        $postID = $_GET['id'];
-
-        $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
-
-        $sql = "SELECT * FROM Posts WHERE PostID = $postID";
-        $result = $conn->query($sql);
-
-        if ($result->num_rows > 0) {
-            $post = $result->fetch_assoc();
-
-            echo "<div class='container'>";
-            echo "<div class='menu-toggle' onclick='toggleMenu()'>";
-            echo "<span></span>";
-            echo "<span></span>";
-            echo "<span></span>";
-            echo "</div>";
-            echo "<div class='menu-bar'>";
-            echo "<p></p>";
-            echo "<a href='index.php'>Home</a>";
-            echo "</div>";
-
-            echo "<h1>{$post['Title']}</h1>";
-            echo "<p>{$post['Content']}</p>";
-
-            echo "<h2>Comments</h2>";
-
-            $sqlComments = "SELECT * FROM Comments WHERE PostID = $postID";
-            $resultComments = $conn->query($sqlComments);
-
-            if ($resultComments->num_rows > 0) {
-                echo "<ul class='comments'>";
-                while ($comment = $resultComments->fetch_assoc()) {
-                    echo "<li class='comment'>";
-                    echo "<div class='comment-content'>{$comment['Content']}</div>";
-                    echo "<div class='comment-meta'>";
-                    echo "<p>댓글 작성자: {$comment['UserID']}</p>";
-                    echo "<p>작성일: {$comment['CreatedAt']}</p>";
-                    echo "<button class='like-button' onclick='toggleLike(this)'>좋아요</button>";
-                    echo "</div>";
-                    echo "</li>";
-                }
-                echo "</ul>";
-            } else {
-                echo "<p>댓글이 아직 없습니다.</p>";
-            }
-            
-            
-            
-
-            if (isset($_SESSION['user_id'])) {
-                echo "<form class='comment-form' method='post' action='add_comment.php'>";
-                echo "<input type='hidden' name='post_id' value='{$postID}'>";
-                echo "<textarea name='comment_content' placeholder='Add a comment'></textarea>";
-                echo "<input type='submit' value='Add Comment'>";
-                echo "&nbsp;&nbsp;";
-                echo "<button class='like-button' onclick='toggleLike()'>Like</button>";
-                echo "</form>";
-
-               
-            } else {
-                echo "<p>Login to add comments and like the post.</p>";
-            }
-
-            echo "</div>";
-        } else {
-            echo "Post not found.";
-        }
-
-        $conn->close();
-    } else {
-        echo "Invalid post ID.";
-    }
-    ?>
-
+    <!-- Your existing toggleMenu function -->
     <script>
-        function toggleLike() {
-            alert('Like button clicked!'); // Replace with actual like logic
-        }
-
         function toggleMenu() {
             var menuBar = document.querySelector('.menu-bar');
-            menuBar.style.left = menuBar.style.left === "0px" ? "-250px" : "0px";
-            document.querySelector('.menu-toggle').classList.toggle('open');
+            menuBar.style.left = (menuBar.style.left === '-250px') ? '0' : '-250px';
         }
-        function toggleLike(button) {
-        var currentState = button.dataset.state;
-        var newState = currentState === 'on' ? 'off' : 'on';
 
-        // 여기에서 좋아요 상태를 서버에 전송하는 로직을 추가할 수 있습니다.
+        // Your existing toggleLike function
+        function toggleLike(likeButton) {
+            var commentId = likeButton.getAttribute('data-comment-id');
 
-        button.dataset.state = newState;
-        button.textContent = newState === 'on' ? '좋아요 취소' : '좋아요';
-    }
+            // Ajax 요청을 통해 서버에 좋아요 토글 요청
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    // 서버 응답 처리
+                    var response = xhr.responseText;
+                    var likeCountSpan = document.getElementById('likeCount' + commentId);
+
+                    if (response.includes('liked')) {
+                        likeButton.innerText = '좋아요 취소';
+                        likeCountSpan.innerText = parseInt(likeCountSpan.innerText) + 1 + ' Likes';
+                    } else if (response.includes('unliked')) {
+                        likeButton.innerText = 'Like';
+                        likeCountSpan.innerText = parseInt(likeCountSpan.innerText) - 1 + ' Likes';
+                    }
+                }
+            };
+            xhr.open('POST', 'update_likes.php', true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            xhr.send('like_comment_id=' + commentId);
+            
+        }
     </script>
-</body>
 
+    <div class="container">
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <!-- Your menu bar -->
+        <div class="menu-bar">
+            <p></p>
+            <a href="index.php">Home</a>
+        </div>
+
+        <!-- Display post details -->
+        <h1><?php echo $post['Title']; ?></h1>
+        <p><?php echo $post['Content']; ?></p>
+
+        <!-- Display comments -->
+        <h2>Comments</h2>
+
+        <?php if (isset($_SESSION['user_id'])) : ?>
+            <!-- Comment form for logged-in users -->
+            <form class="comment-form" method="post" action="add_comment.php">
+                <input type="hidden" name="post_id" value="<?php echo $postID; ?>">
+                <textarea name="comment_content" placeholder="Add a comment"></textarea>
+                <input type="submit" value="Add Comment" onclick="return validateComment()">
+            </form>
+        <?php else : ?>
+            <p>Login to add comments and like the post.</p>
+        <?php endif; ?>
+
+        <!-- JavaScript function for comment validation -->
+        <script>
+            function validateComment() {
+                var commentContent = document.getElementsByName('comment_content')[0].value.trim();
+                if (commentContent === '') {
+                    alert('Please enter a comment.');
+                    return false;
+                }
+                return true;
+            }
+        </script>
+
+        <?php if ($resultComments->num_rows > 0) : ?>
+            <!-- Display comments -->
+            <ul class="comments">
+                <?php while ($comment = $resultComments->fetch_assoc()) : ?>
+                    <li class="comment">
+                        <div class="comment-content"><?php echo $comment['Content']; ?></div>
+                        <div class="comment-meta">
+                            <p>Author: <?php echo $comment['UserID']; ?></p>
+                            <p>Created at: <?php echo $comment['CreatedAt']; ?></p>
+                            <!-- Like button with data-comment-id attribute -->
+                            <button class="like-button" data-comment-id="<?php echo $comment['CommentID']; ?>" onclick="toggleLike(this)">Like</button>
+                            <!-- Display current likes count for the comment -->
+                            <span id="likeCount<?php echo $comment['CommentID']; ?>"><?php echo $comment['Likes']; ?> Likes</span>
+                        </div>
+                    </li>
+                <?php endwhile; ?>
+            </ul>
+        <?php endif; ?>
+    </div>
+
+</body>
 </html>

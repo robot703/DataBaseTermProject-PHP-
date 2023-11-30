@@ -12,6 +12,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 폼 데이터 처리
     $title = $_POST["title"];
     $content = $_POST["content"];
+    $codeLanguage = $_POST["code_language"]; // Added code_language
+
     $userID = $_SESSION["user_id"];
 
     $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
@@ -19,9 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("연결 실패: " . $conn->connect_error);
     }
 
-    // SQL 인젝션을 방지하기 위해 준비된 문 사용
-    $stmt = $conn->prepare("INSERT INTO Posts (UserID, Title, Content) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $userID, $title, $content);
+    $stmt = $conn->prepare("INSERT INTO Posts (UserID, Title, Content, CodeLanguage) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("ssss", $userID, $title, $content, $codeLanguage);
 
     if ($stmt->execute()) {
         // 게시물이 성공적으로 작성되었을 때 JavaScript로 팝업 창 띄우고 index.php로 이동
@@ -69,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             color: #333;
         }
 
-        input {
+        input, select, textarea {
             width: 100%;
             padding: 10px;
             margin-bottom: 20px;
@@ -79,13 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         textarea {
-            width: 100%;
-            height: 300px;
-            padding: 10px;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            height: 100px;
         }
 
         input[type="submit"] {
@@ -108,13 +103,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- 기존의 HTML 코드 -->
 
         <form action="create_post.php" method="POST">
-        <label for="title">제목:</label>
-        <input type="text" name="title" required>
+            <label for="title">제목:</label>
+            <input type="text" name="title" required>
 
-        <label for="content">내용:</label>
-        <textarea name="content" rows="4" required></textarea>
+            <label for="code_language">코드 언어:</label>
+            <select name="code_language" required>
+            <option value="php">PHP</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="csharp">C#</option>
+            <option value="cpp">C++</option>
+            <option value="ruby">Ruby</option>
+            <option value="swift">Swift</option>
+            <option value="go">Go</option>
+            <option value="typescript">TypeScript</option>
+            <option value="rust">Rust</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="dart">Dart</option>
+            <option value="scala">Scala</option>
+            <option value="r">R</option>
+            <option value="shell">Shell</option>
+            <option value="sql">SQL</option>
+            <option value="perl">Perl</option>
+            <option value="objective-c">Objective-C</option>
+            <option value="matlab">MATLAB</option>
+            <option value="groovy">Groovy</option>
+            <option value="lua">Lua</option>
+            <option value="haskell">Haskell</option>
+            <option value="elixir">Elixir</option>
+            <option value="dart">Dart</option>
+            <option value="powershell">PowerShell</option>
+            <option value="coffeescript">CoffeeScript</option>
+            <option value="vbnet">VB.NET</option>
+            <option value="jsx">JSX</option>
+            <option value="tsx">TSX</option>
+            <option value="graphql">GraphQL</option>
+            <option value="bash">Bash</option>
+            <option value="perl">Perl</option>
+            <option value="vue">Vue.js</option>
+            <option value="angular">Angular</option>
+            <option value="react">React.js</option>
+            <option value="d3">D3.js</option>
+            <option value="svelte">Svelte</option>
+            <option value="flutter">Flutter</option>
+            <option value="assembly">Assembly</option>
+            <option value="cobol">COBOL</option>
+            <option value="forth">Forth</option>
+                <!-- Add more options for other code languages as needed -->
+            </select>
 
-        <input type="submit" value="게시물 작성">
-    </form>
+            <label for="content">내용:</label>
+            <textarea name="content" rows="4" required></textarea>
+
+            <input type="submit" value="게시물 작성">
+        </form>
+    </div>
 </body>
 </html>
