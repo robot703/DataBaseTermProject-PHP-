@@ -25,6 +25,7 @@ if (!isset($_SESSION['user_id'])) {
             font-family: Arial, sans-serif;
             margin: 20px;
             background-color: #f4f4f4;
+            color: #333; /* Set text color to black */
         }
 
         h1 {
@@ -111,6 +112,15 @@ if (!isset($_SESSION['user_id'])) {
             border-bottom: 1px solid #ccc;
             padding-bottom: 20px;
         }
+
+        .post h3 {
+            color: #000; /* Set post title color to black */
+        }
+
+        .post .meta {
+            color: #666; /* Set meta information color to a dark gray */
+            margin-top: 5px;
+        }
     </style>
 </head>
 
@@ -144,6 +154,7 @@ if (!isset($_SESSION['user_id'])) {
             while ($row = $result->fetch_assoc()) {
                 echo "<div class='post'>";
                 echo "<h3><a href='post_detail.php?id={$row['PostID']}'>{$row['Title']}</a></h3>";
+                echo "<p class='meta'>By {$row['UserID']} on {$row['CreatedAt']}</p>";
                 echo "</div>";
             }
         } else {
