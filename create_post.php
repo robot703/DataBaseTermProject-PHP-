@@ -103,6 +103,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </style>
 </head>
 <body>
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+          <!-- Your menu bar -->
+          <div class="menu-bar">
+            <p></p>
+            <a href="index.php">Home</a>
+        </div>
     <!-- 게시물 생성을 위한 양식 추가 -->
     <div class="container">
         <!-- 기존의 HTML 코드 -->
@@ -116,5 +126,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <input type="submit" value="게시물 작성">
     </form>
+    <script>
+        function toggleMenu() {
+            var menuBar = document.querySelector('.menu-bar');
+            menuBar.style.left = (menuBar.style.left === '-250px') ? '0' : '-250px';
+        }
+    </script>
 </body>
 </html>
