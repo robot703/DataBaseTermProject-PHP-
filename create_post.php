@@ -95,13 +95,81 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         input[type="submit"]:hover {
             background-color: #45a049;
         }
+        .menu-bar {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: #333;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            transition: left 0.3s ease;
+        }
+
+        .menu-bar a {
+            display: block;
+            padding: 15px;
+            color: #fff;
+            text-decoration: none;
+            border-bottom: 1px solid #555;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .menu-bar a:hover {
+            background-color: #555;
+        }
+
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .menu-toggle span {
+            display: block;
+            height: 2px;
+            width: 25px;
+            background-color: #333;
+            margin-bottom: 6px;
+            transition: 0.3s;
+        }
+
+        .menu-toggle span:nth-child(2) {
+            width: 18px;
+        }
+
+        .menu-toggle.open span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .menu-toggle.open span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-toggle.open span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
     </style>
 </head>
 <body>
     <!-- 게시물 생성을 위한 양식 추가 -->
     <div class="container">
         <!-- 기존의 HTML 코드 -->
-
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <!-- Your menu bar -->
+        <div class="menu-bar">
+            <p></p>
+            <a href="index.php">Home</a>
+        </div>
         <form action="create_post.php" method="POST">
             <label for="title">제목:</label>
             <input type="text" name="title" required>
@@ -161,5 +229,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="submit" value="게시물 작성">
         </form>
     </div>
+    <script>
+        function toggleMenu() {
+            var menuBar = document.querySelector('.menu-bar');
+            menuBar.style.left = (menuBar.style.left === '-250px') ? '0' : '-250px';
+        }
+    </script>
 </body>
 </html>
