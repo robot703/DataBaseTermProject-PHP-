@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         input[type="submit"] {
-            background-color: #4caf50;
+            background-color: #4285f4;
             color: #fff;
             padding: 10px 15px;
             border: none;
@@ -93,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         input[type="submit"]:hover {
-            background-color: #45a049;
+            background-color: #2c64b7;
         }
         .menu-bar {
             position: fixed;
