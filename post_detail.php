@@ -114,6 +114,25 @@ $conn->close();
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            border: 1px solid #ddd;
+            width: 150px;
+            background-color: #f2f2f2;
+            text-align: center;
+            padding: 12px;
+        }
          #post-details {
             margin-bottom: 20px;
             border-bottom: 1px solid #ccc;
@@ -173,6 +192,9 @@ $conn->close();
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative; /* 부모로부터 상대적 위치 설정 */
+            border-bottom-width: 1px;
+            padding-bottom: 35px;
         }
 
         .comment-content {
@@ -192,6 +214,35 @@ $conn->close();
             margin: 0;
             margin-right: 10px;
         }
+
+        .delete-buttons {
+            position: absolute;
+            top: 70%;
+            right: 10px;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 5px; /* 간격 조절 */
+            flex-direction: row; /* 버튼들을 세로로 배치 */
+        }
+
+        .delete-buttons button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 5px 8px; /* 수정된 부분: 버튼 크기 조절 */
+            text-align: center;
+            text-decoration: none;
+            font-size: 10px; /* 수정된 부분: 글꼴 크기 조절 */
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 5px; /* 수정된 부분: 간격 조절 */
+            display: inline-block;
+        }
+
+        .delete-buttons button:hover {
+            background-color: #2c64b7;
+        }
+
 
         .comment-form {
             margin-top: 20px;
@@ -296,11 +347,8 @@ $conn->close();
             background-color: #2c64b7;
         }
         
-        /* Add this style for the edit and delete buttons */
-        .edit-delete-buttons {
-            display: flex;
-            gap: 10px;
-        }
+    
+       
     </style>
     <body>
 <div class="container">
@@ -316,10 +364,28 @@ $conn->close();
             <a href="index.php">Home</a>
         </div>
         <div id="post-details">
-            <h2><?php echo $title; ?></h2>
-            <p>Language: <?php echo $codeLanguage; ?></p>
-            <p>Posted by <?php echo $userID; ?> on <?php echo $createdAt; ?></p>
-            <p><?php echo $content; ?></p>
+            <table border="1">
+                <tr>
+                    <th>Title</th>
+                    <td><?php echo $title; ?></td>
+                </tr>
+                <tr>
+                    <th>Language</th>
+                    <td><?php echo $codeLanguage; ?></td>
+                </tr>
+                <tr>
+                    <th>Posted by</th>
+                    <td><?php echo $userID; ?></td>
+                </tr>
+                <tr>
+                    <th>Posted on</th>
+                    <td><?php echo $createdAt; ?></td>
+                </tr>
+                <tr>
+                    <th>Content</th>
+                    <td><?php echo $content; ?></td>
+                </tr>
+            </table>
         </div>
      
 
@@ -341,34 +407,29 @@ $conn->close();
         
 
         <?php if ($resultComments->num_rows > 0) : ?>
-            <!-- Display comments -->
-            <ul class="comments">
+    <!-- Display comments -->
+    <ul class="comments">
         <?php while ($comment = $resultComments->fetch_assoc()) : ?>
-            <li class="comment">
+            <li class="comment" >
                 <div class="comment-content"><?php echo $comment['Content']; ?></div>
                 <div class="comment-meta">
                     <p>작성자: <?php echo $comment['UserID']; ?></p>
                     <p>작성일: <?php echo $comment['CreatedAt']; ?></p>
                     <!-- 댓글 좋아요 버튼(data-comment-id 속성 사용) -->
-                    <button class="like-button" data-comment-id="<?php echo $comment['CommentID']; ?>" onclick="toggleLike(this)">좋아요</button>
-                    <!-- 편집 및 삭제 버튼 -->
-                    <div id="edit-buttons">
-                        <form action="edit_comment.php" method="post">
-                            <button type="submit" value=<?php echo $comment['CommentID']; ?>>편집</button>
-                        </form>
-                    </div>
-                    <div id="delete-buttons">
-                        <!-- JavaScript를 사용하여 deleteComment 함수 호출 -->
-                        <button onclick="deleteComment(<?php echo $comment['CommentID']; ?>)">삭제</button>
-                    </div>
+
                     <!-- 댓글에 대한 현재 좋아요 횟수 표시 -->
-                    <span id="likeCount<?php echo $comment['CommentID']; ?>"><?php echo $comment['Likes']; ?> 좋아요</span>
+                    <span id="likeCount<?php echo $comment['CommentID']; ?>"><?php echo $comment['Likes']; ?> Like</span>
+                </div>
+                <div class="delete-buttons">
+                    <!-- JavaScript를 사용하여 deleteComment 함수 호출 -->
+                    <button onclick="toggleLike(<?php echo $comment['CommentID']; ?>)">Like</button>
+                    <button onclick="deleteComment(<?php echo $comment['CommentID']; ?>)">Delete</button>
                 </div>
             </li>
         <?php endwhile; ?>
     </ul>
-        <?php endif; ?>
-    </div>
+<?php endif; ?>
+</div>
     <script>
         function toggleMenu() {
             var menuBar = document.querySelector('.menu-bar');
@@ -394,6 +455,23 @@ $conn->close();
                 });
             }
         }
+        function toggleLike(commentID) {
+            // AJAX를 사용하여 비동기식 요청으로 좋아요 토글 처리
+            $.ajax({
+                type: 'POST',
+                url: 'add-like.php', // 좋아요 토글을 처리할 서버 측 파일
+                data: { comment_id: commentID },
+                success: function(response) {
+                    // 토글 후 페이지를 새로고침하여 좋아요 개수 및 상태를 업데이트
+                    location.reload();
+                },
+                error: function(error) {
+                    console.log('좋아요 토글 중 오류 발생: ' + error);
+                }
+            });
+        }
+
+        
     </script>
 </body>
 </html>
