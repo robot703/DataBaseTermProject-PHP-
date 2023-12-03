@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+// Check if the user is not logged in, redirect to login page
 function connectDB()
 {
     $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
@@ -10,6 +11,28 @@ function connectDB()
     return $conn;
 }
 
+// Function to delete a comment by comment ID
+function deleteComment($commentID)
+{
+    $conn = connectDB();
+    $commentID = $conn->real_escape_string($commentID);
+
+    // Perform the deletion
+    $deleteSQL = "DELETE FROM Comments WHERE CommentID = '$commentID'";
+    $result = $conn->query($deleteSQL);
+
+    // Debugging statements
+    if ($result) {
+        echo "Comment deleted successfully.";
+    } else {
+        echo "Error deleting comment: " . $conn->error;
+    }
+
+    $conn->close();
+
+    return $result;
+}
+// Include any necessary database connection code here
 if (isset($_GET['id'])) {
     $postID = $_GET['id'];
     $conn = connectDB();
@@ -27,22 +50,85 @@ if (isset($_GET['id'])) {
     $sqlComments = "SELECT * FROM Comments WHERE PostID = $postID";
     $resultComments = $conn->query($sqlComments);
 
+    // Check if the form is submitted for comment deletion
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_comment'])) {
+        $commentIDToDelete = $_POST['delete_comment'];
+        $success = deleteComment($commentIDToDelete);
+
+        if ($success) {
+            echo "Comment deleted successfully.";
+            // Redirect to the current page to refresh the comments
+            header("Location: {$_SERVER['PHP_SELF']}?id=$postID");
+            exit();
+        } else {
+            echo "Error deleting comment.";
+        }
+    }
+
     $conn->close();
 } else {
     echo "Invalid post ID.";
     exit();
 }
+
+
+// Retrieve the PostID from the URL
+// Retrieve the PostID from the URL
+$postID = isset($_GET['id']) ? $_GET['id'] : null;
+
+// Check if the PostID is valid
+if (!$postID) {
+    echo "Invalid Post ID";
+    exit();
+}
+
+// Include any necessary database connection code here
+$conn = connectDB();
+
+// Fetch the post details from the database
+$sql = "SELECT * FROM Posts WHERE PostID = '$postID'";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $title = $row['Title'];
+    $content = $row['Content'];
+    $codeLanguage = $row['CodeLanguage'];
+    $userID = $row['UserID'];
+    $createdAt = $row['CreatedAt'];
+
+} else {
+    echo "Post not found";
+}
+
+// Close the database connection
+$conn->close();
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $post['Title']; ?> - CommunityPlatform</title>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
+         #post-details {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 20px;
+        }
+
+        #post-details h2 {
+            color: #4285f4;
+            margin-bottom: 10px;
+        }
+
+        #post-details p {
+            color: #333;
+            margin-bottom: 10px;
+        }
        body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -209,46 +295,15 @@ if (isset($_GET['id'])) {
         .like-button:hover {
             background-color: #2c64b7;
         }
+        
+        /* Add this style for the edit and delete buttons */
+        .edit-delete-buttons {
+            display: flex;
+            gap: 10px;
+        }
     </style>
-</head>
-<body>
-
-    <!-- Your existing toggleMenu function -->
-    <script>
-        function toggleMenu() {
-            var menuBar = document.querySelector('.menu-bar');
-            menuBar.style.left = (menuBar.style.left === '-250px') ? '0' : '-250px';
-        }
-
-        // Your existing toggleLike function
-        function toggleLike(likeButton) {
-            var commentId = likeButton.getAttribute('data-comment-id');
-
-            // Ajax 요청을 통해 서버에 좋아요 토글 요청
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    // 서버 응답 처리
-                    var response = xhr.responseText;
-                    var likeCountSpan = document.getElementById('likeCount' + commentId);
-
-                    if (response.includes('liked')) {
-                        likeButton.innerText = '좋아요 취소';
-                        likeCountSpan.innerText = parseInt(likeCountSpan.innerText) + 1 + ' Likes';
-                    } else if (response.includes('unliked')) {
-                        likeButton.innerText = 'Like';
-                        likeCountSpan.innerText = parseInt(likeCountSpan.innerText) - 1 + ' Likes';
-                    }
-                }
-            };
-            xhr.open('POST', 'update_likes.php', true);
-            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-            xhr.send('like_comment_id=' + commentId);
-            
-        }
-    </script>
-
-    <div class="container">
+    <body>
+<div class="container">
         <div class="menu-toggle" onclick="toggleMenu()">
             <span></span>
             <span></span>
@@ -260,10 +315,13 @@ if (isset($_GET['id'])) {
             <p></p>
             <a href="index.php">Home</a>
         </div>
-
-        <!-- Display post details -->
-        <h1><?php echo $post['Title']; ?></h1>
-        <p><?php echo $post['Content']; ?></p>
+        <div id="post-details">
+            <h2><?php echo $title; ?></h2>
+            <p>Language: <?php echo $codeLanguage; ?></p>
+            <p>Posted by <?php echo $userID; ?> on <?php echo $createdAt; ?></p>
+            <p><?php echo $content; ?></p>
+        </div>
+     
 
         <!-- Display comments -->
         <h2>Comments</h2>
@@ -280,36 +338,62 @@ if (isset($_GET['id'])) {
         <?php endif; ?>
 
         <!-- JavaScript function for comment validation -->
-        <script>
-            function validateComment() {
-                var commentContent = document.getElementsByName('comment_content')[0].value.trim();
-                if (commentContent === '') {
-                    alert('Please enter a comment.');
-                    return false;
-                }
-                return true;
-            }
-        </script>
+        
 
         <?php if ($resultComments->num_rows > 0) : ?>
             <!-- Display comments -->
             <ul class="comments">
-                <?php while ($comment = $resultComments->fetch_assoc()) : ?>
-                    <li class="comment">
-                        <div class="comment-content"><?php echo $comment['Content']; ?></div>
-                        <div class="comment-meta">
-                            <p>Author: <?php echo $comment['UserID']; ?></p>
-                            <p>Created at: <?php echo $comment['CreatedAt']; ?></p>
-                            <!-- Like button with data-comment-id attribute -->
-                            <button class="like-button" data-comment-id="<?php echo $comment['CommentID']; ?>" onclick="toggleLike(this)">Like</button>
-                            <!-- Display current likes count for the comment -->
-                            <span id="likeCount<?php echo $comment['CommentID']; ?>"><?php echo $comment['Likes']; ?> Likes</span>
-                        </div>
-                    </li>
-                <?php endwhile; ?>
-            </ul>
+        <?php while ($comment = $resultComments->fetch_assoc()) : ?>
+            <li class="comment">
+                <div class="comment-content"><?php echo $comment['Content']; ?></div>
+                <div class="comment-meta">
+                    <p>작성자: <?php echo $comment['UserID']; ?></p>
+                    <p>작성일: <?php echo $comment['CreatedAt']; ?></p>
+                    <!-- 댓글 좋아요 버튼(data-comment-id 속성 사용) -->
+                    <button class="like-button" data-comment-id="<?php echo $comment['CommentID']; ?>" onclick="toggleLike(this)">좋아요</button>
+                    <!-- 편집 및 삭제 버튼 -->
+                    <div id="edit-buttons">
+                        <form action="edit_comment.php" method="post">
+                            <button type="submit" value=<?php echo $comment['CommentID']; ?>>편집</button>
+                        </form>
+                    </div>
+                    <div id="delete-buttons">
+                        <!-- JavaScript를 사용하여 deleteComment 함수 호출 -->
+                        <button onclick="deleteComment(<?php echo $comment['CommentID']; ?>)">삭제</button>
+                    </div>
+                    <!-- 댓글에 대한 현재 좋아요 횟수 표시 -->
+                    <span id="likeCount<?php echo $comment['CommentID']; ?>"><?php echo $comment['Likes']; ?> 좋아요</span>
+                </div>
+            </li>
+        <?php endwhile; ?>
+    </ul>
         <?php endif; ?>
     </div>
-
+    <script>
+        function toggleMenu() {
+            var menuBar = document.querySelector('.menu-bar');
+            menuBar.style.left = (menuBar.style.left === '-250px') ? '0' : '-250px';
+        }
+        // 댓글 삭제를 위한 JavaScript 함수
+        function deleteComment(commentID) {
+            var confirmation = confirm("이 댓글을 삭제하시겠습니까?");
+            
+            if (confirmation) {
+                // AJAX를 사용하여 비동기식 요청으로 댓글 삭제 처리
+                $.ajax({
+                    type: 'POST',
+                    url: 'post_detail.php?id=<?php echo $postID; ?>', // 현재 게시물 ID 지정
+                    data: { delete_comment: commentID },
+                    success: function(response) {
+                        // 댓글 삭제 후 페이지를 새로고침하여 댓글을 업데이트
+                        location.reload();
+                    },
+                    error: function(error) {
+                        console.log('댓글 삭제 중 오류 발생: ' + error);
+                    }
+                });
+            }
+        }
+    </script>
 </body>
 </html>

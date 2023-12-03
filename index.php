@@ -2,10 +2,7 @@
 session_start();
 
 // Check if the user is not logged in, redirect to login page
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+
 
 $menuLabel = 'Logout';
 $menuLink = 'logout.php';
@@ -100,6 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding-top: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
             transition: left 0.3s ease;
+            z-index: 1;
         }
 
         .menu-bar a {
@@ -122,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 20px;
             left: 20px;
             cursor: pointer;
-            z-index: 2;
+            z-index: 100;
         }
 
         .menu-toggle span {

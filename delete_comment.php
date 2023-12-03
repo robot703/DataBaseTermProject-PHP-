@@ -1,4 +1,7 @@
 <?php
+echo '<pre>';
+print_r($_POST); // 또는 var_dump($_POST);
+echo '</pre>';
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment_id'])) {
@@ -7,27 +10,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment_id'])) {
 
     $conn = connectDB();
 
-    // Check if the user is the author of the comment
-    $check_author_stmt = $conn->prepare("SELECT * FROM Comments WHERE CommentID = ? AND UserID = ?");
-    $check_author_stmt->bind_param("ii", $deleted_comment_id, $user_id);
-    $check_author_stmt->execute();
-    $check_author_result = $check_author_stmt->get_result();
+    $sql = "SELECT * FROM Comments WHERE CommentID = $deleted_comment_id AND UserID = '$user_id'";
+    $result = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($result);
+    $CommentID = $row['CommentID'];
 
-    if ($check_author_result->num_rows > 0) {
-        // User is the author, delete the comment
-        $delete_comment_stmt = $conn->prepare("DELETE FROM Comments WHERE CommentID = ?");
-        $delete_comment_stmt->bind_param("i", $deleted_comment_id);
-        $delete_comment_stmt->execute();
+    if ($CommentID > 0) {
+        $sql1 = "DELETE FROM Comments WHERE CommentID = $CommentID";
+        $result1 = mysqli_query($conn, $sql1);
 
-        echo "success";
+        if ($result1) {
+            header('Location: post_detail.php');
+            exit(); // Ensure that no other output is sent before header()
+        } else {
+            echo "error during delete";
+        }
     } else {
         // User is not the author, return an error
-        echo "error";
+        echo "error: Comment not found or user is not the author";
     }
 
-    $check_author_stmt->close();
     $conn->close();
 } else {
     echo 'fail';
+}
+
+function connectDB()
+{
+    $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
+
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    return $conn;
 }
 ?>
