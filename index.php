@@ -281,7 +281,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             die("연결 실패: " . $conn->connect_error);
         }
         
+        // 기존의 SQL 쿼리를 수정하여 ORDER BY 절을 포함시킵니다.
         $sql = "SELECT * FROM Posts";
+
+        // 게시물을 생성 시간을 기준으로 내림차순으로 정렬하기 위해 ORDER BY 절을 추가합니다.
+        $sql .= " ORDER BY CreatedAt DESC";
         // 언어 선택이 있으면 WHERE 절에 추가
         if (!empty($selectLanguage)) {
             $sql .= " WHERE CodeLanguage = '$selectLanguage'";
