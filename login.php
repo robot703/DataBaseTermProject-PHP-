@@ -10,21 +10,28 @@ $login_error = ""; // Variable to store login error message
 
 // 로그인 처리
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user_id = $_POST['user_id']; // Update variable name
+    $user_id = $_POST['user_id'];
     $password = $_POST['password'];
 
     // Use prepared statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT * FROM Users WHERE UserID = ? AND Password = ?");
-    $stmt->bind_param("ss", $user_id, $password);
+    $stmt = $conn->prepare("SELECT * FROM Users WHERE UserID = ?");
+    $stmt->bind_param("s", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
     $stmt->close();
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
-        $_SESSION['user_id'] = $user['UserID'];
-        header("Location: index.php");
-        exit();
+        $hashed_password = $user['Password'];
+
+        // Verify the password
+        if (password_verify($password, $hashed_password)) {
+            $_SESSION['user_id'] = $user['UserID'];
+            header("Location: index.php");
+            exit();
+        } else {
+            $login_error = "로그인에 실패했습니다. 다시 확인해주세요.";
+        }
     } else {
         $login_error = "로그인에 실패했습니다. 다시 확인해주세요.";
     }

@@ -285,49 +285,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <?php
-        // 검색 입력에 기반하여 SQL 쿼리 수정
         $searchLanguage = isset($_GET['searchLanguage']) ? $_GET['searchLanguage'] : '';
         $selectLanguage = isset($_GET['selectLanguage']) ? $_GET['selectLanguage'] : '';
-
-        $sql = "SELECT * FROM Posts";
-        $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
-        if ($conn->connect_error) {
-            die("연결 실패: " . $conn->connect_error);
-        }
         
-        // 기존의 SQL 쿼리를 수정하여 ORDER BY 절을 포함시킵니다.
         $sql = "SELECT * FROM Posts";
-
-        // 게시물을 생성 시간을 기준으로 내림차순으로 정렬하기 위해 ORDER BY 절을 추가합니다.
-        $sql .= " ORDER BY CreatedAt DESC";
-        // 언어 선택이 있으면 WHERE 절에 추가
+        
         if (!empty($selectLanguage)) {
             $sql .= " WHERE CodeLanguage = '$selectLanguage'";
         }
-
-        // 검색어가 있으면 WHERE 절에 추가
+        
         if (!empty($searchLanguage)) {
             $sql .= empty($selectLanguage) ? " WHERE" : " AND";
             $sql .= " CodeLanguage LIKE '%$searchLanguage%'";
         }
-
-        $result = $conn->query($sql);
-
-        if ($result->num_rows > 0) {
-            // Inside the while loop where you display posts
-            while ($row = $result->fetch_assoc()) {
-                echo "<div class='post'>";
-                echo "<h3><a href='post_detail.php?id={$row['PostID']}'>{$row['Title']}</a></h3>";
-                echo "<p class='meta'>#{$row['CodeLanguage']} By {$row['UserID']} on {$row['CreatedAt']}</p>";
         
-                // Style the delete button
-                echo "<button class='delete-button' onclick='confirmDelete({$row['PostID']})'>삭제</button>";
+        $sql .= " ORDER BY CreatedAt DESC";
         
-                echo "</div>";
-            }
-        } else {
-            echo "게시물이 없습니다.";
+        $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
+        
+        if ($conn->connect_error) {
+            die("연결 실패: " . $conn->connect_error);
         }
+        
+        $result = $conn->query($sql);
+        
+        if ($result === false) {
+            echo "Error: " . $conn->error;
+        } else {
+            if ($result->num_rows > 0) {
+                // Display posts
+                while ($row = $result->fetch_assoc()) {
+                    echo "<div class='post'>";
+                    echo "<h3><a href='post_detail.php?id={$row['PostID']}'>{$row['Title']}</a></h3>";
+                    echo "<p class='meta'>#{$row['CodeLanguage']} By {$row['UserID']} on {$row['CreatedAt']}</p>";
+            
+                    // Style the delete button
+                    echo "<button class='delete-button' onclick='confirmDelete({$row['PostID']})'>삭제</button>";
+            
+                    echo "</div>";
+                    }
+            } else {
+                echo "게시물이 없습니다.";
+            }
+        }
+        
+        $conn->close();
+
 
         if (isset($_SESSION['user_id'])) {
             $userID = $_SESSION['user_id'];

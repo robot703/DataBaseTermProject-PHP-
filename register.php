@@ -26,8 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $registration_error = "이미 사용 중인 아이디입니다.";
     } else {
         // UserID is not in use, proceed with registration
+        // Hash the password
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
         $stmt = $conn->prepare("INSERT INTO Users (UserID, Username, Password) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $user_id, $username, $password);
+        $stmt->bind_param("sss", $user_id, $username, $hashed_password);
         $stmt->execute();
         $stmt->close();
 
