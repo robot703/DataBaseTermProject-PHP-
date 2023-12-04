@@ -61,6 +61,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stackoverflow</title>
     <style>
+        /* Add this to your existing styles in the head */
+        .delete-button {
+            padding: 8px 15px;
+            background-color: #ff6666; /* Red background color */
+            color: #fff; /* White text color */
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 5px; /* Adjust as needed */
+        }
+
+        .delete-button:hover {
+            background-color: #ff4d4d; /* Darker red on hover */
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -305,19 +319,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "<div class='post'>";
                 echo "<h3><a href='post_detail.php?id={$row['PostID']}'>{$row['Title']}</a></h3>";
                 echo "<p class='meta'>#{$row['CodeLanguage']} By {$row['UserID']} on {$row['CreatedAt']}</p>";
-            
-                // Add links for modification and deletion
-                echo "<p><a href='modify_post.php?id={$row['PostID']}'>수정</a> | <a href='#' onclick='confirmDelete({$row['PostID']})'>삭제</a></p>";
+        
+                // Style the delete button
+                echo "<button class='delete-button' onclick='confirmDelete({$row['PostID']})'>삭제</button>";
+        
                 echo "</div>";
             }
         } else {
             echo "게시물이 없습니다.";
         }
 
-        $conn->close();
-        
+        if (isset($_SESSION['user_id'])) {
+            $userID = $_SESSION['user_id'];
+            $conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
+            if ($conn->connect_error) {
+                die("Connection failed: " . $conn->connect_error);
+            }
 
-        
+            $getLoginInfoQuery = "SELECT UserID, LoginTime FROM LoginLogs WHERE UserID = '$userID' ORDER BY LoginTime DESC";
+            $result = $conn->query($getLoginInfoQuery);
+
+            if ($result && $result->num_rows > 0) {
+                echo "<script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var loginTableContainer = document.createElement('div');
+                            loginTableContainer.style.position = 'fixed';
+                            loginTableContainer.style.top = '20px';  // Adjust as needed
+                            loginTableContainer.style.right = '20px'; // Adjust as needed
+                            loginTableContainer.style.maxHeight = '200px'; // Set the max height for the table container, adjust as needed
+                            loginTableContainer.style.overflowY = 'auto'; // Enable vertical scrolling
+                            loginTableContainer.style.border = '1px solid #ccc';
+                            loginTableContainer.style.borderRadius = '8px';
+                            loginTableContainer.style.backgroundColor = '#fff';
+                            loginTableContainer.style.padding = '10px';
+            
+                            var loginTable = document.createElement('table');
+                            loginTable.style.width = '100%';
+                            loginTable.style.borderCollapse = 'collapse';
+                            loginTable.style.border = '1px solid #ddd'; // Add border to the table
+            
+                            // Create table header
+                            var headerRow = loginTable.insertRow(0);
+                            createTableCell(headerRow, 'User ID', true); // true for header cells
+                            createTableCell(headerRow, 'Login Time', true); // true for header cells
+            
+                            ";
+            
+                while ($row = $result->fetch_assoc()) {
+                    $userID = $row['UserID'];
+                    $lastLoginTime = $row['LoginTime'];
+            
+                    echo "var row = loginTable.insertRow(-1);
+                          createTableCell(row, '$userID');
+                          createTableCell(row, '$lastLoginTime');";
+                }
+            
+                echo "loginTableContainer.appendChild(loginTable);
+                      document.body.appendChild(loginTableContainer);
+                      });
+            
+                      function createTableCell(row, content, isHeader) {
+                          var cell = isHeader ? row.insertCell() : row.insertCell(-1); // -1 to append cell to the end
+                          cell.textContent = content;
+                          cell.style.border = '1px solid #ddd'; // Add border to the cells
+                          cell.style.padding = '8px'; // Add padding to the cells
+                      }
+                    </script>";
+            }
+    
+        }
+
+
+        $conn->close(); 
     ?>
         <!-- Additional scripts for menu toggle and logout function -->
         <script>
