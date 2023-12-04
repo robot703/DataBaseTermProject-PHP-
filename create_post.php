@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $userID = $_SESSION["user_id"];
 
-    $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
+    $conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
     if ($conn->connect_error) {
         die("연결 실패: " . $conn->connect_error);
     }
