@@ -27,6 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Verify the password
         if (password_verify($password, $hashed_password)) {
             $_SESSION['user_id'] = $user['UserID'];
+            $log = "INSERT INTO LoginLogs (UserID) value ('$user_id');";
+            $result1 = $conn->query($log);
+            $row = $result->fetch_assoc();
             header("Location: index.php");
             exit();
         } else {
