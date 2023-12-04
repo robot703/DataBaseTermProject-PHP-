@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         // Check if the user is the owner of the post
         $userID = $_SESSION['user_id'];
-        $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
+        $conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
 
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);

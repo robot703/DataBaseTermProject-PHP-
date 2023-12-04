@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment_id'])) {
 
 function connectDB()
 {
-    $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
+    $conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
 
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
