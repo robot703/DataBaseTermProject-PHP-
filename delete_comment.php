@@ -7,7 +7,6 @@ session_start();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment_id'])) {
     $deleted_comment_id = $_POST['comment_id'];
     $user_id = $_SESSION['user_id'];
-
     $conn = connectDB();
 
     $sql = "SELECT * FROM Comments WHERE CommentID = $deleted_comment_id AND UserID = '$user_id'";

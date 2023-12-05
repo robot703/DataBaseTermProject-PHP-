@@ -11,7 +11,6 @@ function connectDB()
     return $conn;
 }
 
-// Function to delete a comment by comment ID
 function deleteComment($commentID)
 {
     $conn = connectDB();
@@ -21,7 +20,6 @@ function deleteComment($commentID)
     $deleteSQL = "DELETE FROM Comments WHERE CommentID = '$commentID'";
     $result = $conn->query($deleteSQL);
 
-    // Debugging statements
     if ($result) {
         echo "Comment deleted successfully.";
     } else {
@@ -32,7 +30,7 @@ function deleteComment($commentID)
 
     return $result;
 }
-// Include any necessary database connection code here
+
 if (isset($_GET['id'])) {
     $postID = $_GET['id'];
     $conn = connectDB();
@@ -50,14 +48,13 @@ if (isset($_GET['id'])) {
     $sqlComments = "SELECT * FROM Comments WHERE PostID = $postID";
     $resultComments = $conn->query($sqlComments);
 
-    // Check if the form is submitted for comment deletion
+
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_comment'])) {
         $commentIDToDelete = $_POST['delete_comment'];
         $success = deleteComment($commentIDToDelete);
 
         if ($success) {
             echo "Comment deleted successfully.";
-            // Redirect to the current page to refresh the comments
             header("Location: {$_SERVER['PHP_SELF']}?id=$postID");
             exit();
         } else {
@@ -85,7 +82,7 @@ if (!$postID) {
 // Include any necessary database connection code here
 $conn = connectDB();
 
-// Fetch the post details from the database
+
 $sql = "SELECT * FROM Posts WHERE PostID = '$postID'";
 $result = $conn->query($sql);
 
