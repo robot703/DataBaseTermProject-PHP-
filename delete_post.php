@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         // Check if the user is the owner of the post
         $userID = $_SESSION['user_id'];
-        $conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
+        $conn = new mysqli("172.27.64.121:4567", "minjae", "1234", "CommunityPlatform");
 
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
@@ -26,13 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $postOwnerID = $row['UserID'];
 
             if ($userID === $postOwnerID) {
-                // User is the owner; delete related comments first
                 $deleteCommentsQuery = "DELETE FROM comments WHERE PostID = '$postID'";
                 if ($conn->query($deleteCommentsQuery) === TRUE) {
-                    // Comments deleted; now delete the post
                     $deletePostQuery = "DELETE FROM Posts WHERE PostID = '$postID'";
                     if ($conn->query($deletePostQuery) === TRUE) {
-                        header("Location: index.php"); // Redirect to the main page after deletion
+                        header("Location: index.php");
                         exit();
                     } else {
                         $error = "Error deleting post: " . $conn->error;

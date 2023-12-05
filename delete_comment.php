@@ -7,7 +7,6 @@ session_start();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment_id'])) {
     $deleted_comment_id = $_POST['comment_id'];
     $user_id = $_SESSION['user_id'];
-
     $conn = connectDB();
 
     $sql = "SELECT * FROM Comments WHERE CommentID = $deleted_comment_id AND UserID = '$user_id'";
@@ -37,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment_id'])) {
 
 function connectDB()
 {
-    $conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
+    $conn = new mysqli("172.27.64.121:4567", "minjae", "1234", "CommunityPlatform");
 
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);

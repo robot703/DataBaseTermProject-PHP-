@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // 데이터베이스 연결
-$conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
+$conn = new mysqli("172.27.64.121:4567", "minjae", "1234", "CommunityPlatform");
 
 // 데이터베이스 연결 오류 확인
 if ($conn->connect_error) {
@@ -17,21 +17,17 @@ if ($conn->connect_error) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // 폼 데이터 처리
     $title = $_POST["title"];
     $content = $_POST["content"];
-    $codeLanguage = $_POST["code_language"]; // Added code_language
-
+    $codeLanguage = $_POST["code_language"]; 
     $userID = $_SESSION["user_id"];
 
     $stmt = $conn->prepare("INSERT INTO Posts (UserID, Title, Content, CodeLanguage) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("ssss", $userID, $title, $content, $codeLanguage);
 
     if ($stmt->execute()) {
-        // 게시물이 성공적으로 작성되었을 때 JavaScript로 팝업 창 띄우고 index.php로 이동
         echo "<script>alert('게시물이 성공적으로 작성되었습니다!'); window.location.href = 'index.php';</script>";
     } else {
-        // 게시물 작성 중 오류가 발생했을 때 JavaScript로 팝업 창 띄우기
         echo "<script>alert('게시물 작성 중 오류가 발생했습니다: " . $stmt->error . "');</script>";
     }
 

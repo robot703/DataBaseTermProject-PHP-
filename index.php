@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check if the current user has the permission to delete the post
     $userID = $_SESSION['user_id'];
-    $conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
+    $conn = new mysqli("172.27.64.121:4567", "minjae", "1234", "CommunityPlatform");
 
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
@@ -301,7 +301,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $sql .= " ORDER BY CreatedAt DESC";
 
-            $conn = new mysqli("localhost", "root", "cho7031105*", "CommunityPlatform");
+            $conn = new mysqli("172.27.64.121:4567", "minjae", "1234", "CommunityPlatform");
 
             if ($conn->connect_error) {
                 die("연결 실패: " . $conn->connect_error);
