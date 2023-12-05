@@ -8,6 +8,14 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// 데이터베이스 연결
+$conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
+
+// 데이터베이스 연결 오류 확인
+if ($conn->connect_error) {
+    die("연결 실패: " . $conn->connect_error);
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 폼 데이터 처리
     $title = $_POST["title"];
@@ -15,11 +23,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $codeLanguage = $_POST["code_language"]; // Added code_language
 
     $userID = $_SESSION["user_id"];
-
-    
-    if ($conn->connect_error) {
-        die("연결 실패: " . $conn->connect_error);
-    }
 
     $stmt = $conn->prepare("INSERT INTO Posts (UserID, Title, Content, CodeLanguage) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("ssss", $userID, $title, $content, $codeLanguage);
@@ -33,9 +36,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $stmt->close();
-    $conn->close();
 }
+
+// 데이터베이스 연결 종료
+$conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
