@@ -92,7 +92,7 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
     $title = $row['Title'];
-    $content = $row['Content'];
+    $content = nl2br($row['Content']); // nl2br 함수를 사용하여 개행 문자를 <br>로 변환
     $codeLanguage = $row['CodeLanguage'];
     $userID = $row['UserID'];
     $createdAt = $row['CreatedAt'];
@@ -346,7 +346,16 @@ $conn->close();
         .like-button:hover {
             background-color: #2c64b7;
         }
-        
+        #post-details table {
+        width: 100%;
+        table-layout: fixed;
+        }
+
+        #post-details table td {
+            word-wrap: break-word;
+            overflow-wrap: break-word; /* 최신 브라우저 지원을 위해 추가 */
+            max-width: 200px; /* 텍스트가 셀 너비를 넘어갈 경우 최대 너비 설정 (원하는 크기로 조절) */
+        }
     
        
     </style>
