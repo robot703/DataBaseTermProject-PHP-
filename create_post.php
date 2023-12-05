@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // 데이터베이스 연결
-$conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
+$conn = new mysqli("172.27.64.121:4567", "minjae", "1234", "CommunityPlatform");
 
 // 데이터베이스 연결 오류 확인
 if ($conn->connect_error) {

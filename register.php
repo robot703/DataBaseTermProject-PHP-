@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$conn = new mysqli("127.0.0.1", "root", "cho7031105*", "CommunityPlatform");
+$conn = new mysqli("172.27.64.121:4567", "minjae", "1234", "CommunityPlatform");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
@@ -15,18 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Check if the UserID is already in use
     $check_stmt = $conn->prepare("SELECT * FROM Users WHERE UserID = ?");
     $check_stmt->bind_param("s", $user_id);
     $check_stmt->execute();
     $check_result = $check_stmt->get_result();
 
     if ($check_result->num_rows > 0) {
-        // UserID is already in use
+       
         $registration_error = "이미 사용 중인 아이디입니다.";
     } else {
-        // UserID is not in use, proceed with registration
-        // Hash the password
+
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
         $stmt = $conn->prepare("INSERT INTO Users (UserID, Username, Password) VALUES (?, ?, ?)");
@@ -34,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $stmt->close();
 
-        // Redirect to login page or another appropriate page after successful registration
         header("Location: login.php");
         exit();
     }
