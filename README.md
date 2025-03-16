@@ -7,7 +7,7 @@
 - **OS**: Windows 10 / Ubuntu 22.04 등  
 - **웹 서버**: Apache 2.4+  
 - **PHP**: 7.4+ 또는 8.0+  
-- **DB**: MySQL 5.7+ 또는 MariaDB 10+  
+- **DB**: MySQL 8.0.1 
 - **브라우저**: Chrome
 
 ## 목차
